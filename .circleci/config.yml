@@ -1,0 +1,160 @@
+version: 2.1
+
+filter_prod: &filter_prod
+  tags:
+    only: /^v.*-prod/
+  branches:
+    only: /master/
+
+filter_non_prod: &filter_non_prod
+  tags:
+    ignore: /^v.*/
+  branches:
+    ignore: /master/
+
+executors:
+  devops-tools:
+    description: For executor
+    working_directory: ~/k8s
+    docker:
+      - image: georgedriver/k8s-tools:latest
+
+commands:
+  # login helper to get a given k8s cluster kubeconfig and access
+  # this command is going to dramatically change once we leverage wectl
+  login:
+    description: login helper for clusters
+    parameters:
+      cluster:
+        description: the cluster to login too
+        default: "local"
+        type: string
+    steps:
+      - run:
+          name: get cluster << parameters.cluster >> kubeconfig
+          command: |
+            mkdir -p ~/.kube
+            echo $K8S_CONFIG_B64 | base64 --decode > ~/.kube/config
+      - run:
+          name: test cluster connection
+          command: |
+            set -x
+            kubectl version
+
+  # lint the k8s-bundle helmfiles for a given k8s cluster
+  helmfile_lint:
+    description: lint the k8s-bundle helmfiles for a given k8s cluster
+    parameters:
+      cluster:
+        description: the cluster to apply the k8s-bundle too
+        type: string
+    steps:
+      - run:
+          name: linting helmfiles for cluster << parameters.cluster >>
+          command: |
+            set -e
+            helmfile --file . -e << parameters.cluster >> lint \
+              | grep -v 'error copying from remote stream to local connection'
+  # diff the k8s-bundle helmfiles with a given k8s cluster
+  helmfile_diff:
+    description: diff the k8s-bundle helmfiles with a given k8s cluster
+    parameters:
+      cluster:
+        description: the cluster to diff the k8s-bundle against
+        type: string
+    steps:
+      - run:
+          name: diffing helmfiles against cluster << parameters.cluster >>
+          command: |
+            set -e
+            # script --flush --quiet --return /tmp/diff-output.txt --command
+            helmfile -e << parameters.cluster >> --file . \
+              diff --suppress-secrets --concurrency=4 \
+                | grep -v 'error copying from remote stream to local connection'
+  # apply the k8s-bundle helmfiles into a given k8s cluster
+  helmfile_apply:
+    description: apply the k8s-bundle helmfiles into a given k8s cluster
+    parameters:
+      cluster:
+        description: the cluster to apply the k8s-bundle too
+        type: string
+    steps:
+      - run:
+          name: applying helmfiles against cluster << parameters.cluster >>
+          command: |
+            set -e
+            helmfile --file . -e << parameters.cluster >> sync --concurrency=4 \
+              | grep -v 'error copying from remote stream to local connection'
+
+jobs:
+  # lint the k8s-bundle helmfiles for a given k8s cluster
+  lint:
+    description: lint the k8s-bundle helmfiles for a given k8s cluster
+    executor: devops-tools
+    parameters:
+      cluster:
+        description: the cluster to be lint-ed
+        default: "local"
+        type: string
+    environment:
+      - CLUSTER_NAME: << parameters.cluster >>
+    steps:
+      - checkout
+      - helmfile_lint:
+          cluster: << parameters.cluster >>
+  # diff the k8s-bundle helmfiles with a given k8s cluster
+  diff:
+    description: diff the k8s-bundle helmfiles with a given k8s cluster
+    executor: devops-tools
+    parameters:
+      cluster:
+        description: the cluster to be diff-ed
+        default: "local"
+        type: string
+    environment:
+      - CLUSTER_NAME: << parameters.cluster >>
+    steps:
+      - checkout
+      - login:
+          cluster: << parameters.cluster >>
+      - helmfile_diff:
+          cluster: << parameters.cluster >>
+  # apply the k8s-bundle helmfiles into a given k8s cluster
+  apply:
+    description: apply the k8s-bundle helmfiles into a given k8s cluster
+    executor: devops-tools
+    parameters:
+      cluster:
+        description: the cluster to apply the k8s-bundle too
+        default: "local"
+        type: string
+    environment:
+      - CLUSTER_NAME: << parameters.cluster >>
+    steps:
+      - checkout
+      - login:
+          cluster: << parameters.cluster >>
+      - helmfile_apply:
+          cluster: << parameters.cluster >>
+
+
+workflows:
+  # cn:cn-shanghai:k8s-mirana
+  k8s-mirana:
+    jobs:
+      - lint:
+          name: lint k8s-mirana
+          cluster: k8s-mirana
+      - diff:
+          name: diff k8s-mirana
+          cluster: k8s-mirana
+          requires:
+            - lint k8s-mirana
+      - apply:
+          name: deploy k8s-mirana
+          cluster: k8s-mirana
+          requires:
+            - diff k8s-mirana
+          filters:
+            <<: *filter_prod
+  

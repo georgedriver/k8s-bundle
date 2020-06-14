@@ -1,0 +1,20 @@
+environments:
+  k8s-mirana:
+    values:
+      - ./environments/k8s-mirana.yaml.gotmpl
+
+repositories:
+  - name: georgedriver
+    url: https://georgedriver.github.io/helm-charts
+
+helmDefaults:
+  wait: true
+  timeout: 600
+
+releases:
+{{- if and (.Environment.Values | getOrNil "ingress.enabled") (eq .Environment.Values.cluster.provider "docker-for-mac") }}
+  - name: nginx-ingress
+    chart: georgedriver/nginx-ingress-docker-for-mac
+    namespace: ingress-nginx
+    version: 0.1.1
+{{- end }}
