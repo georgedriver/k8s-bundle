@@ -1,0 +1,90 @@
+{{- $root := . }}
+
+configs:
+  secret:
+    # default: adminpass
+    argocdServerAdminPassword: {{ env "ARGO_SERVER_ADMIN_PASSWORD" | default "$2a$10$Q/CuTm7lLMIyDVf4v4frueDf/wRNvX7iwfinsWkuTmGM2XkFkbczS" }}
+
+dex:
+  enabled: false
+
+server:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      kubernetes.io/tls-acme: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.org/server-snippet: proxy_ssl_verify off;
+    hosts:
+    - argo.{{ .Environment.Values.cluster.domain }}
+    tls:
+    - hosts:
+      - argo.{{ .Environment.Values.cluster.domain }}
+      secretName: argo.{{ .Environment.Values.cluster.domain }}
+
+  config:
+    url: https://argo.{{ .Environment.Values.cluster.domain }}
+
+    statusbadge.enabled: "true"
+    users.anonymous.enabled: "false"
+
+    # TODO: kubectl -n argocd create secret generic argo-github-repo-secret --from-literal=password=<password> --from-literal=username=georgedriver
+    repositories: |
+      - url: https://github.com/georgedriver/argocd-services
+        passwordSecret:
+          name: argo-github-repo-secret
+          key: password
+        usernameSecret:
+          name: argo-github-repo-secret
+          key: username
+      - type: helm
+        url: https://raw.githubusercontent.com/georgedriver/helm-repo-in-github/master
+        name: georgedriver
+
+  additionalApplications:
+    - name: 00-app-of-apps
+      namespace: argocd
+      project: default
+      source:
+        repoURL: https://github.com/georgedriver/argocd-services
+        targetRevision: HEAD
+        path: "app-of-apps"
+        helm:
+          valueFiles:
+            - "values-{{ .Environment.Values.cluster.name }}.yaml"
+      destination:
+          server: https://kubernetes.default.svc
+          namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+
+{{with (readFile "../namespaces.values" | fromYaml)}}
+  additionalProjects:
+  {{range .namespaces}}
+  - name: {{.name}}
+    namespace: argocd
+    description: ArgoCD Services Project - {{.name}}
+    sourceRepos:
+    - '*'
+    destinations:
+    - namespace: {{.name}}
+      server: '*'
+    clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    roles:
+    - name: read-only
+      description: Read-only privileges to {{.name}}
+      policies:
+      - p, proj:{{.name}}:read-only, applications, get, {{.name}}/*, allow
+    - name: ci-role
+      description: Sync privileges for all apps in {{.name}}
+      policies:
+      - p, proj:{{.name}}:ci-role, applications, sync, {{.name}}/*, allow
+      - p, proj:{{.name}}:ci-role, applications, update, {{.name}}/*, allow
+  {{end}}
+
+{{end}}

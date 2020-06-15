@@ -6,6 +6,8 @@ environments:
 repositories:
   - name: georgedriver
     url: https://georgedriver.github.io/helm-charts
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
 
 helmDefaults:
   wait: true
@@ -17,4 +19,13 @@ releases:
     chart: georgedriver/nginx-ingress-docker-for-mac
     namespace: ingress-nginx
     version: 0.1.1
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "argocd.enabled" }}
+  - name: argocd
+    chart: argo/argo-cd
+    version: 2.3.5
+    namespace: argocd
+    values:
+      - ./values/argocd.yaml.gotmpl
 {{- end }}
