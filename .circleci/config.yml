@@ -53,8 +53,7 @@ commands:
           name: linting helmfiles for cluster << parameters.cluster >>
           command: |
             set -e
-            helmfile --file . -e << parameters.cluster >> lint \
-              | grep -v 'error copying from remote stream to local connection'
+            helmfile -e << parameters.cluster >> lint
   # diff the k8s-bundle helmfiles with a given k8s cluster
   helmfile_diff:
     description: diff the k8s-bundle helmfiles with a given k8s cluster
@@ -67,10 +66,7 @@ commands:
           name: diffing helmfiles against cluster << parameters.cluster >>
           command: |
             set -e
-            # script --flush --quiet --return /tmp/diff-output.txt --command
-            helmfile -e << parameters.cluster >> --file . \
-              diff --suppress-secrets --concurrency=4 \
-                | grep -v 'error copying from remote stream to local connection'
+            helmfile -e << parameters.cluster >> diff --suppress-secrets
   # apply the k8s-bundle helmfiles into a given k8s cluster
   helmfile_apply:
     description: apply the k8s-bundle helmfiles into a given k8s cluster
@@ -83,8 +79,7 @@ commands:
           name: applying helmfiles against cluster << parameters.cluster >>
           command: |
             set -e
-            helmfile --file . -e << parameters.cluster >> sync --concurrency=4 \
-              | grep -v 'error copying from remote stream to local connection'
+            helmfile -e << parameters.cluster >> sync
 
 jobs:
   # lint the k8s-bundle helmfiles for a given k8s cluster

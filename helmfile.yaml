@@ -6,6 +6,8 @@ environments:
 repositories:
   - name: georgedriver
     url: https://georgedriver.github.io/helm-charts
+  - name: jetstack
+    url: https://charts.jetstack.io
 
 helmDefaults:
   wait: true
@@ -17,4 +19,28 @@ releases:
     chart: georgedriver/nginx-ingress-docker-for-mac
     namespace: ingress-nginx
     version: 0.1.1
+{{- end }}
+
+{{- if .Environment.Values.cert_manager.enabled }}
+  - name: cert-manager
+    chart: jetstack/cert-manager
+    version: v0.15.1
+    namespace: cert-manager
+    set:
+      - name: installCRDs
+        value: true
+
+  - name: cert-manager-alidns-webhook
+    chart: georgedriver/alidns-webhook
+    version: 0.1.0
+    namespace: cert-manager
+    set:
+      - name: alicloud_access_key
+        value: {{ requiredEnv "ALICLOUD_ACCESS_KEY"}}
+      - name: alicloud_secret_key
+        value: {{ requiredEnv "ALICLOUD_SECRET_KEY"}}
+      - name: domain
+        value: cndriver.tech
+      - name: email
+        value: george9012@hotmail.com
 {{- end }}
