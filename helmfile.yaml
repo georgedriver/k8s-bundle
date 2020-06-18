@@ -50,7 +50,7 @@ releases:
 {{- if .Environment.Values | getOrNil "argocd.enabled" }}
   - name: argocd
     chart: argo/argo-cd
-    version: 2.3.5
+    version: 2.3.6
     namespace: argocd
     values:
       - ./values/argocd.yaml.gotmpl

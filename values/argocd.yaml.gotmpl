@@ -1,5 +1,8 @@
 {{- $root := . }}
 
+# Users of Helm v3 should set the installCRDs value to false to avoid warnings about nonexistant webhooks.
+installCRDs: false
+
 configs:
   secret:
     # default: adminpass
@@ -30,7 +33,7 @@ server:
     statusbadge.enabled: "true"
     users.anonymous.enabled: "false"
 
-    # TODO: kubectl -n argocd create secret generic argo-github-repo-secret --from-literal=password=<password> --from-literal=username=georgedriver
+    # TODO: kubectl -n argocd create secret generic argo-github-repo-secret --from-literal=password=<password> --from-literal=username=<username>
     repositories: |
       - url: https://github.com/georgedriver/argocd-services
         passwordSecret:

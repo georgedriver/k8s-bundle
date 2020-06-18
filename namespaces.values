@@ -1,7 +1,6 @@
 namespaces:
   - name:                      "sample"
     owner:                     "george9012@hotmail.com"
-    istio:                     "disabled"
     team:                      "devops"
     slack_channel:             "#home_alerts"
     slack_webhook:             "https://hooks.slack.com/services/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"
@@ -9,7 +8,6 @@ namespaces:
 
   - name:                      "stable"
     owner:                     "george9012@hotmail.com"
-    istio:                     "disabled"
     team:                      "stable"
     slack_channel:             "#home_alerts"
     slack_webhook:             "https://hooks.slack.com/services/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"
