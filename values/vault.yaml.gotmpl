@@ -1,0 +1,60 @@
+ingress:
+  enabled: true
+  # Used to create Ingress record (should used with service.type: ClusterIP).
+  hosts:
+   - {{ .Environment.Values.cluster.vault }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.org/server-snippet: proxy_ssl_verify off;
+  tls:
+  - hosts:
+    - {{ .Environment.Values.cluster.vault }}
+    secretName: {{ .Environment.Values.cluster.vault }}
+vault:
+  externalConfig:
+    # Allows creating policies in Vault which can be used later on in roles
+    # for the Kubernetes based authentication.
+    # See https://www.vaultproject.io/docs/concepts/policies.html for more information.
+    policies:
+      - name: allow_secrets
+        rules: path "secret/*" {
+                capabilities = ["create", "read", "update", "delete", "list"]
+              }
+
+    auth:
+      - type: kubernetes
+        # Allows creating roles in Vault which can be used later on for the Kubernetes based
+        # authentication.
+        # See https://www.vaultproject.io/docs/auth/kubernetes.html#creating-a-role for
+        # more information.
+        roles:
+          # Allow every pod in the default namespace to use the secret kv store
+          - name: default
+            bound_service_account_names: default
+            bound_service_account_namespaces: '*'
+            policies: ["allow_secrets"]
+            ttl: 1h
+
+    secrets:
+      - path: secret
+        type: kv
+        description: General secrets.
+        options:
+          version: 2
+    # Allows writing some secrets to Vault (useful for development purposes).
+    # See https://www.vaultproject.io/docs/secrets/kv/index.html for more information.
+    startupSecrets:
+      - type: kv
+        path: secret/data/startupsecret/accounts/aws
+        data:
+          data:
+            AWS_ACCESS_KEY_ID: secretId
+            AWS_SECRET_ACCESS_KEY: s3cr3t
+
+persistence:
+  ## Enable persistence using Persistent Volume Claims
+  ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+  enabled: true
