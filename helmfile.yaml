@@ -6,6 +6,8 @@ environments:
 repositories:
   - name: georgedriver
     url: https://georgedriver.github.io/helm-charts
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
   - name: jetstack
     url: https://charts.jetstack.io
 
@@ -43,4 +45,13 @@ releases:
         value: cndriver.tech
       - name: email
         value: george9012@hotmail.com
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "argocd.enabled" }}
+  - name: argocd
+    chart: argo/argo-cd
+    version: 2.3.6
+    namespace: argocd
+    values:
+      - ./values/argocd.yaml.gotmpl
 {{- end }}
