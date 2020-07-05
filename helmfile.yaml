@@ -69,6 +69,21 @@ releases:
 {{- end }}
 
 {{- if .Environment.Values | getOrNil "argocd.enabled" }}
+  {{- if .Environment.Values | getOrNil "argocd.github_user" }}
+  - name: argo-github-repo-secret
+    chart: incubator/raw
+    values:
+    - templates:
+      - |
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: argo-github-repo-secret
+        stringData:
+          username: {{ .Environment.Values.argocd.github_user }}
+          password: {{ .Environment.Values.argocd.github_token }}
+  {{- end }}
+
   - name: argocd
     chart: argo/argo-cd
     version: 2.3.6

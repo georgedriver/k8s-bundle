@@ -25,7 +25,7 @@ vault:
   enabled: true
 
 argocd:
-  # 1. Create secret for argocd private github repo access before enabling the argocd here
-  #       kubectl -n argocd create secret generic argo-github-repo-secret --from-literal=password=<password> --from-literal=username=<username>
-  # 2. Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
+  # Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
   enabled: true
+  github_user: {{ requiredEnv "ARGO_GITHUB_USER"}}
+  github_token: {{ requiredEnv "ARGO_GITHUB_TOKEN"}}
