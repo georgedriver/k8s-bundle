@@ -3,11 +3,6 @@
 # Users of Helm v3 should set the installCRDs value to false to avoid warnings about nonexistant webhooks.
 installCRDs: false
 
-configs:
-  secret:
-    # default: adminpass
-    argocdServerAdminPassword: {{ env "ARGO_SERVER_ADMIN_PASSWORD" | default "$2a$10$Q/CuTm7lLMIyDVf4v4frueDf/wRNvX7iwfinsWkuTmGM2XkFkbczS" }}
-
 dex:
   enabled: false
 

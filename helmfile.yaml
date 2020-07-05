@@ -12,10 +12,13 @@ repositories:
     url: https://charts.jetstack.io
   - name: banzaicloud
     url: https://kubernetes-charts.banzaicloud.com
+  - name: incubator
+    url: https://kubernetes-charts-incubator.storage.googleapis.com
 
 helmDefaults:
   wait: true
-  timeout: 600
+  args:
+      - "--timeout=15m0s"
 
 releases:
 {{- if and (.Environment.Values | getOrNil "ingress.enabled") (eq .Environment.Values.cluster.provider "docker-for-mac") }}
@@ -25,7 +28,7 @@ releases:
     version: 0.1.1
 {{- end }}
 
-{{- if .Environment.Values.cert_manager.enabled }}
+{{- if .Environment.Values | getOrNil "cert_manager.enabled" }}
   - name: cert-manager
     chart: jetstack/cert-manager
     version: v0.15.1
@@ -33,29 +36,22 @@ releases:
     set:
       - name: installCRDs
         value: true
+{{- end }}
 
+{{- if .Environment.Values | getOrNil "alidns_webhook.enabled" }}
   - name: cert-manager-alidns-webhook
     chart: georgedriver/alidns-webhook
     version: 0.1.0
     namespace: cert-manager
     set:
       - name: alicloud_access_key
-        value: {{ requiredEnv "ALICLOUD_ACCESS_KEY"}}
+        value: {{ .Environment.Values.alidns_webhook.alicloud_access_key }}
       - name: alicloud_secret_key
-        value: {{ requiredEnv "ALICLOUD_SECRET_KEY"}}
+        value: {{ .Environment.Values.alidns_webhook.alicloud_secret_key }}
       - name: domain
-        value: cndriver.tech
+        value: {{ .Environment.Values.alidns_webhook.domain }}
       - name: email
-        value: george9012@hotmail.com
-{{- end }}
-
-{{- if .Environment.Values | getOrNil "argocd.enabled" }}
-  - name: argocd
-    chart: argo/argo-cd
-    version: 2.3.6
-    namespace: argocd
-    values:
-      - ./values/argocd.yaml.gotmpl
+        value: {{ .Environment.Values.alidns_webhook.email }}
 {{- end }}
 
 {{- if .Environment.Values | getOrNil "vault.enabled" }}
@@ -70,4 +66,13 @@ releases:
     chart: banzaicloud/vault-secrets-webhook
     version: 1.3.2
     namespace: system-addons
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "argocd.enabled" }}
+  - name: argocd
+    chart: argo/argo-cd
+    version: 2.3.6
+    namespace: argocd
+    values:
+      - ./values/argocd.yaml.gotmpl
 {{- end }}

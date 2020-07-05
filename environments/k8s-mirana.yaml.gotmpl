@@ -13,8 +13,19 @@ ingress:
 cert_manager:
   enabled: true
 
+alidns_webhook:
+  enabled: true
+  # access/secret key from alicloud to control the DNS services https://dns.console.aliyun.com
+  alicloud_access_key: {{ requiredEnv "ALICLOUD_ACCESS_KEY"}}
+  alicloud_secret_key: {{ requiredEnv "ALICLOUD_SECRET_KEY"}}
+  domain: cndriver.tech
+  email: george9012@hotmail.com
+
 vault:
   enabled: true
 
 argocd:
+  # 1. Create secret for argocd private github repo access before enabling the argocd here
+  #       kubectl -n argocd create secret generic argo-github-repo-secret --from-literal=password=<password> --from-literal=username=<username>
+  # 2. Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
   enabled: true
