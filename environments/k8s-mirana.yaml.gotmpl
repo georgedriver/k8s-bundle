@@ -5,7 +5,8 @@ cluster:
   domain: mirana.cndriver.tech
   environment: dev
   location: cn-shanghai
-  vault: vault.mirana.cndriver.tech
+  ingress_class: nginx
+  cluster_issuer: letsencrypt-prod
 
 ingress:
   enabled: true

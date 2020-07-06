@@ -8,10 +8,10 @@ dex:
 
 server:
   ingress:
-    enabled: true
+    enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
     annotations:
-      kubernetes.io/ingress.class: "nginx"
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
+      cert-manager.io/cluster-issuer: {{ .Environment.Values.cluster.cluster_issuer }}
       kubernetes.io/tls-acme: "true"
       nginx.ingress.kubernetes.io/backend-protocol: HTTPS
       nginx.org/server-snippet: proxy_ssl_verify off;

@@ -17,11 +17,9 @@ repositories:
 
 helmDefaults:
   wait: true
-  args:
-      - "--timeout=15m0s"
 
 releases:
-{{- if and (.Environment.Values | getOrNil "ingress.enabled") (eq .Environment.Values.cluster.provider "docker-for-mac") }}
+{{- if .Environment.Values | getOrNil "ingress.enabled" }}
   - name: nginx-ingress
     chart: georgedriver/nginx-ingress-docker-for-mac
     namespace: ingress-nginx
