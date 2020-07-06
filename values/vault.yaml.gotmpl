@@ -53,6 +53,11 @@ vault:
           data:
             AWS_ACCESS_KEY_ID: secretId
             AWS_SECRET_ACCESS_KEY: s3cr3t
+      - type: kv
+        path: secret/data/stable/k8s-sample-app/env
+        data:
+          data:
+            SECRET_ENV: test_secret
 
 persistence:
   ## Enable persistence using Persistent Volume Claims
