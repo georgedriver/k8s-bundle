@@ -17,8 +17,8 @@ cert_manager:
 alidns_webhook:
   enabled: true
   # access/secret key from alicloud to control the DNS services https://dns.console.aliyun.com
-  alicloud_access_key: {{ requiredEnv "ALICLOUD_ACCESS_KEY"}}
-  alicloud_secret_key: {{ requiredEnv "ALICLOUD_SECRET_KEY"}}
+  alicloud_access_key: {{ env "ALICLOUD_ACCESS_KEY" | default "not_set" }}
+  alicloud_secret_key: {{ env "ALICLOUD_SECRET_KEY" | default "not_set" }}
   domain: cndriver.tech
   email: george9012@hotmail.com
 
@@ -28,5 +28,5 @@ vault:
 argocd:
   # Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
   enabled: true
-  github_user: {{ requiredEnv "ARGO_GITHUB_USER"}}
-  github_token: {{ requiredEnv "ARGO_GITHUB_TOKEN"}}
+  github_user: {{ env "ARGO_GITHUB_USER" | default "not_set" }}
+  github_token: {{ env "ARGO_GITHUB_TOKEN" | default "not_set" }}
