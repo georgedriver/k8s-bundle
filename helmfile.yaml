@@ -73,6 +73,7 @@ releases:
   {{- if .Environment.Values | getOrNil "argocd.github_user" }}
   - name: argo-github-repo-secret
     chart: incubator/raw
+    namespace: argocd
     values:
     - templates:
       - |
