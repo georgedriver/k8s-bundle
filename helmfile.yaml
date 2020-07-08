@@ -17,6 +17,7 @@ repositories:
 
 helmDefaults:
   wait: true
+  createNamespace: true
 
 releases:
 {{- if .Environment.Values | getOrNil "ingress.enabled" }}
@@ -50,6 +51,8 @@ releases:
         value: {{ .Environment.Values.alidns_webhook.domain }}
       - name: email
         value: {{ .Environment.Values.alidns_webhook.email }}
+    labels:
+      depend_on_others: true
 {{- end }}
 
 {{- if .Environment.Values | getOrNil "vault.enabled" }}
@@ -80,6 +83,8 @@ releases:
         stringData:
           username: {{ .Environment.Values.argocd.github_user }}
           password: {{ .Environment.Values.argocd.github_token }}
+    labels:
+      depend_on_others: true
   {{- end }}
 
   - name: argocd
@@ -88,4 +93,6 @@ releases:
     namespace: argocd
     values:
       - ./values/argocd.yaml.gotmpl
+    labels:
+      depend_on_others: true
 {{- end }}
