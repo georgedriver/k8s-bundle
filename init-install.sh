@@ -53,6 +53,8 @@ prompt() {
     export $ENV_NAME=$VALUE
 }
 
+kubectl version
+
 installed helmfile
 installed helm
 
