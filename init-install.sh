@@ -58,10 +58,9 @@ kubectl version
 installed helmfile
 installed helm
 
-[ -z $ALICLOUD_ACCESS_KEY ] && prompt ALICLOUD_ACCESS_KEY
-[ -z $ALICLOUD_SECRET_KEY ] && prompt ALICLOUD_SECRET_KEY
-[ -z $ARGO_GITHUB_USER ] && prompt ARGO_GITHUB_USER
-[ -z $ARGO_GITHUB_TOKEN ] && prompt ARGO_GITHUB_TOKEN
+for env in $(cat ./environments/$1.yaml.gotmpl | grep '{{ env' | awk -F'"' '{print $2}'); do
+    [ -z ${!env} ] && prompt $env
+done
 
 helmfile -e $1 --selector depend_on_others!=true apply
 helmfile -e $1 --selector depend_on_others=true sync
