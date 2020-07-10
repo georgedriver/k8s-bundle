@@ -1,0 +1,61 @@
+{{ $cluster_name := .Environment.Values.cluster.codename }}
+cluster_name: {{ $cluster_name }}
+
+commonLabels:
+    k8s-monitoring: "true"
+
+defaultRules:
+    labels: &scrapeLabels
+      k8s-monitoring: "true"
+    create: true
+
+prometheus:
+  ingress:
+    enabled: true
+    hosts: [ prometheus.{{ .Environment.Values.cluster.domain }} ]
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: "false"
+    serviceMonitorSelector:
+      matchLabels:
+        *scrapeLabels
+    ruleSelector:
+      matchLabels:
+        *scrapeLabels
+    externalUrl: http://prometheus.{{ .Environment.Values.cluster.domain }}
+    externalLabels:
+      cluster: "{{ $cluster_name }}"
+
+alertmanager:
+  ingress:
+    enabled: true
+    hosts: [ alertmanager.{{ .Environment.Values.cluster.domain }} ]
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+  alertmanagerSpec:
+    externalUrl: http://alertmanager.{{ .Environment.Values.cluster.domain }}
+  templateFiles:
+    slack_notification.tmpl: |
+      {{ printf "{{ define \"__single_message_title\" }}{{ range .Alerts.Firing }}*{{ .Labels.alertname }}* {{ if .Annotations.summary }} @ {{ .Annotations.summary }}{{ end }}{{ end }}{{ range .Alerts.Resolved }}*{{ .Labels.alertname }}* {{ if .Annotations.summary }} @ {{ .Annotations.summary }}{{ end }}{{ end }}{{ end }} {{ define \"custom_title\" }}[{{ .Status | toUpper }}{{ if eq .Status \"firing\" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ if or (and (eq (len .Alerts.Firing) 1) (eq (len .Alerts.Resolved) 0)) (and (eq (len .Alerts.Firing) 0) (eq (len .Alerts.Resolved) 1)) }}{{ template \"__single_message_title\" . }}{{ end }}{{ end }} {{ define \"custom_slack_message\" }} {{ if or (and (eq (len .Alerts.Firing) 1) (eq (len .Alerts.Resolved) 0)) (and (eq (len .Alerts.Firing) 0) (eq (len .Alerts.Resolved) 1)) }} * %s Alert Firing:* {{ range .Alerts.Firing }}{{printf \"\\n•\" }}{{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }} {{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }} {{ end }} {{ if gt (len .Alerts.Resolved) 0 }} * %s Alert Resolved:*  {{ range .Alerts.Resolved }} {{printf \"\\n•\" }} {{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }}{{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }}{{ end }}{{ end }} {{ else }} {{ if gt (len .Alerts.Firing) 0 }} * %s Alerts Firing:* {{ range .Alerts.Firing }} {{printf \"\\n•\" }} *{{ .Labels.alertname }}* {{ if .Annotations.summary }} @ {{ .Annotations.summary }}{{ end }}: {{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }} {{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }} {{ end }}{{ end }} {{ if gt (len .Alerts.Resolved) 0 }} * %s Alerts Resolved:* {{ range .Alerts.Resolved }}{{printf \"\\n•\" }} *{{ .Labels.alertname }}* {{ if .Annotations.summary }}@ {{ .Annotations.summary }}{{ end }}: {{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }} {{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }} {{ end }}{{ end }} {{ end }} {{ end }}" $cluster_name $cluster_name $cluster_name $cluster_name }}
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['job']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      routes: []
+      receiver: 'null'
+    receivers:
+    - name: 'null'
+    templates:
+      - /etc/alertmanager/config/slack_notification.tmpl
+
+grafana:
+  ingress:
+    enabled: true
+    hosts: [ grafana.{{ .Environment.Values.cluster.domain }} ]
+    annotations:
+      kubernetes.io/ingress.class: "nginx"

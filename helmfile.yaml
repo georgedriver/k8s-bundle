@@ -14,6 +14,8 @@ repositories:
     url: https://kubernetes-charts.banzaicloud.com
   - name: incubator
     url: https://kubernetes-charts-incubator.storage.googleapis.com
+  - name: stable
+    url: https://kubernetes-charts.storage.googleapis.com
 
 helmDefaults:
   wait: true
@@ -96,4 +98,15 @@ releases:
       - ./values/argocd.yaml.gotmpl
     labels:
       depend_on_others: true
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "prometheus_operator.enabled" }}
+  - name: k8s-prometheus-operator
+    chart: stable/prometheus-operator
+    version: 8.16.1
+    namespace: system-monitoring
+    values:
+      - ./values/k8s-prometheus-operator.yaml.gotmpl
+    labels:
+      monitoring: true
 {{- end }}

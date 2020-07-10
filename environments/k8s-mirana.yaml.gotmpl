@@ -31,3 +31,6 @@ argocd:
   git_url: https://github.com/georgedriver/argocd-services
   git_user: {{ env "ARGO_GITHUB_USER" | default "not_set" }}
   git_token: {{ env "ARGO_GITHUB_TOKEN" | default "not_set" }}
+
+prometheus_operator:
+  enabled: true
