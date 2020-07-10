@@ -1,7 +1,7 @@
 environments:
-  k8s-mirana:
+  {{ .Environment.Name }}:
     values:
-      - ./environments/k8s-mirana.yaml.gotmpl
+      - ./environments/{{ .Environment.Name }}.yaml.gotmpl
 
 repositories:
   - name: georgedriver
@@ -12,20 +12,22 @@ repositories:
     url: https://charts.jetstack.io
   - name: banzaicloud
     url: https://kubernetes-charts.banzaicloud.com
+  - name: incubator
+    url: https://kubernetes-charts-incubator.storage.googleapis.com
 
 helmDefaults:
   wait: true
-  timeout: 600
+  createNamespace: true
 
 releases:
-{{- if and (.Environment.Values | getOrNil "ingress.enabled") (eq .Environment.Values.cluster.provider "docker-for-mac") }}
+{{- if .Environment.Values | getOrNil "ingress.enabled" }}
   - name: nginx-ingress
     chart: georgedriver/nginx-ingress-docker-for-mac
     namespace: ingress-nginx
     version: 0.1.1
 {{- end }}
 
-{{- if .Environment.Values.cert_manager.enabled }}
+{{- if .Environment.Values | getOrNil "cert_manager.enabled" }}
   - name: cert-manager
     chart: jetstack/cert-manager
     version: v0.15.1
@@ -33,29 +35,24 @@ releases:
     set:
       - name: installCRDs
         value: true
+{{- end }}
 
+{{- if .Environment.Values | getOrNil "alidns_webhook.enabled" }}
   - name: cert-manager-alidns-webhook
     chart: georgedriver/alidns-webhook
     version: 0.1.0
     namespace: cert-manager
     set:
       - name: alicloud_access_key
-        value: {{ requiredEnv "ALICLOUD_ACCESS_KEY"}}
+        value: {{ .Environment.Values.alidns_webhook.alicloud_access_key }}
       - name: alicloud_secret_key
-        value: {{ requiredEnv "ALICLOUD_SECRET_KEY"}}
+        value: {{ .Environment.Values.alidns_webhook.alicloud_secret_key }}
       - name: domain
-        value: cndriver.tech
+        value: {{ .Environment.Values.alidns_webhook.domain }}
       - name: email
-        value: george9012@hotmail.com
-{{- end }}
-
-{{- if .Environment.Values | getOrNil "argocd.enabled" }}
-  - name: argocd
-    chart: argo/argo-cd
-    version: 2.3.6
-    namespace: argocd
-    values:
-      - ./values/argocd.yaml.gotmpl
+        value: {{ .Environment.Values.alidns_webhook.email }}
+    labels:
+      depend_on_others: true
 {{- end }}
 
 {{- if .Environment.Values | getOrNil "vault.enabled" }}
@@ -70,4 +67,33 @@ releases:
     chart: banzaicloud/vault-secrets-webhook
     version: 1.3.2
     namespace: system-addons
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "argocd.enabled" }}
+  {{- if .Environment.Values | getOrNil "argocd.git_user" }}
+  - name: argo-git-repo-secret
+    chart: incubator/raw
+    namespace: argocd
+    values:
+    - templates:
+      - |
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: argo-git-repo-secret
+        stringData:
+          username: {{ .Environment.Values.argocd.git_user }}
+          password: {{ .Environment.Values.argocd.git_token }}
+    labels:
+      depend_on_others: true
+  {{- end }}
+
+  - name: argocd
+    chart: argo/argo-cd
+    version: 2.3.6
+    namespace: argocd
+    values:
+      - ./values/argocd.yaml.gotmpl
+    labels:
+      depend_on_others: true
 {{- end }}

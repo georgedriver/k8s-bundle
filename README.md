@@ -8,14 +8,7 @@ k8s is the Service Infrastructure Compute platform; this repo contains the files
 
 ## Usage
 
-I expect most of the applications can be installed automatically with below commands.
-
-```bash
-docker run -it -v $PWD:/code -v /Users/`whoami`/.kube/config:/root/.kube/config georgedriver/k8s-tools:latest bash
-cd /code
-helmfile -e k8s-mirana diff
-helmfile -e k8s-mirana sync
-```
+`make install`
 
 ### CI/CD flow & the life of a PR
 
