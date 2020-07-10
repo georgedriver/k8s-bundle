@@ -1,7 +1,7 @@
 environments:
-  k8s-mirana:
+  {{ .Environment.Name }}:
     values:
-      - ./environments/k8s-mirana.yaml.gotmpl
+      - ./environments/{{ .Environment.Name }}.yaml.gotmpl
 
 repositories:
   - name: georgedriver
@@ -70,8 +70,8 @@ releases:
 {{- end }}
 
 {{- if .Environment.Values | getOrNil "argocd.enabled" }}
-  {{- if .Environment.Values | getOrNil "argocd.github_user" }}
-  - name: argo-github-repo-secret
+  {{- if .Environment.Values | getOrNil "argocd.git_user" }}
+  - name: argo-git-repo-secret
     chart: incubator/raw
     namespace: argocd
     values:
@@ -80,10 +80,10 @@ releases:
         apiVersion: v1
         kind: Secret
         metadata:
-          name: argo-github-repo-secret
+          name: argo-git-repo-secret
         stringData:
-          username: {{ .Environment.Values.argocd.github_user }}
-          password: {{ .Environment.Values.argocd.github_token }}
+          username: {{ .Environment.Values.argocd.git_user }}
+          password: {{ .Environment.Values.argocd.git_token }}
     labels:
       depend_on_others: true
   {{- end }}

@@ -28,25 +28,23 @@ server:
     statusbadge.enabled: "true"
     users.anonymous.enabled: "false"
 
-    # TODO: kubectl -n argocd create secret generic argo-github-repo-secret --from-literal=password=<password> --from-literal=username=<username>
     repositories: |
-      - url: https://github.com/georgedriver/argocd-services
+      - url: {{ .Environment.Values.argocd.git_url }}
+      {{- if .Environment.Values | getOrNil "argocd.git_user" }}
         passwordSecret:
-          name: argo-github-repo-secret
+          name: argo-git-repo-secret
           key: password
         usernameSecret:
-          name: argo-github-repo-secret
+          name: argo-git-repo-secret
           key: username
-      - type: helm
-        url: https://raw.githubusercontent.com/georgedriver/helm-repo-in-github/master
-        name: georgedriver
+      {{- end }}
 
   additionalApplications:
     - name: 00-app-of-apps
       namespace: argocd
       project: default
       source:
-        repoURL: https://github.com/georgedriver/argocd-services
+        repoURL: {{ .Environment.Values.argocd.git_url }}
         targetRevision: HEAD
         path: "app-of-apps"
         helm:
