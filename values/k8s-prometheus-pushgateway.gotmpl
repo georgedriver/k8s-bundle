@@ -1,0 +1,23 @@
+# Enable this if you're using https://github.com/coreos/prometheus-operator
+serviceMonitor:
+  enabled: true
+  namespace: system-monitoring
+
+  # Fallback to the prometheus default unless specified
+  # interval: 10s
+
+  # Fallback to the prometheus default unless specified
+  # scrapeTimeout: 30s
+
+  ## Used to pass Labels that are used by the Prometheus installed in your cluster to select Service Monitors to work with
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusspec
+  additionalLabels:
+    k8s-monitoring: "true"
+
+ingress:
+  enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
+  hosts:
+  - pushgateway.{{ .Environment.Values.cluster.domain }}
+  path: /

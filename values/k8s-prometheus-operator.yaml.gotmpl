@@ -11,7 +11,7 @@ defaultRules:
 
 prometheus:
   ingress:
-    enabled: true
+    enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
     hosts: [ prometheus.{{ .Environment.Values.cluster.domain }} ]
     annotations:
       kubernetes.io/ingress.class: "nginx"
@@ -29,7 +29,7 @@ prometheus:
 
 alertmanager:
   ingress:
-    enabled: true
+    enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
     hosts: [ alertmanager.{{ .Environment.Values.cluster.domain }} ]
     annotations:
       kubernetes.io/ingress.class: "nginx"
@@ -54,8 +54,9 @@ alertmanager:
       - /etc/alertmanager/config/slack_notification.tmpl
 
 grafana:
+  enabled: false
   ingress:
-    enabled: true
+    enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
     hosts: [ grafana.{{ .Environment.Values.cluster.domain }} ]
     annotations:
       kubernetes.io/ingress.class: "nginx"
