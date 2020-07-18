@@ -28,16 +28,15 @@ server:
     statusbadge.enabled: "true"
     users.anonymous.enabled: "false"
 
+{{- if .Environment.Values | getOrNil "argocd.git_user" }}
     repositories: |
       - url: {{ .Environment.Values.argocd.git_url }}
-      {{- if .Environment.Values | getOrNil "argocd.git_user" }}
         passwordSecret:
           name: argo-git-repo-secret
           key: password
         usernameSecret:
           name: argo-git-repo-secret
           key: username
-      {{- end }}
 
   additionalApplications:
     - name: 00-app-of-apps
@@ -56,6 +55,7 @@ server:
       syncPolicy:
         automated:
           prune: true
+{{- end }}
 
 {{with (readFile "../namespaces.values" | fromYaml)}}
   additionalProjects:

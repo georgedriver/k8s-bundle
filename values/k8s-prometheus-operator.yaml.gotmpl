@@ -12,7 +12,8 @@ defaultRules:
 prometheus:
   ingress:
     enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
-    hosts: [ prometheus.{{ .Environment.Values.cluster.domain }} ]
+    hosts:
+    - prometheus.{{ .Environment.Values.cluster.domain }}
     annotations:
       kubernetes.io/ingress.class: "nginx"
   prometheusSpec:

@@ -5,7 +5,7 @@ set -e
 usage() {
     cat <<EOF
 Usage: $0 <environment>
-Example: $0 k8s-mirana
+Example: $0 <dev|prod>
 EOF
 }
 

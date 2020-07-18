@@ -16,8 +16,6 @@ repositories:
     url: https://kubernetes-charts-incubator.storage.googleapis.com
   - name: stable
     url: https://kubernetes-charts.storage.googleapis.com
-  - name: georgedriver-stable
-    url: https://raw.githubusercontent.com/georgedriver/helm-repo-in-github/master/
 
 helmDefaults:
   wait: true
@@ -117,21 +115,20 @@ releases:
     namespace: system-monitoring
     values:
       - ./values/k8s-prometheus-pushgateway.gotmpl
+    labels:
+      depend_on_others: true
 
   - name: alert-operator
   # NOTE: Secret from spec targetd configuration is not found: Secret "alertmanager-k8s-prometheus-operator-alertmanager" not found
-    chart: georgedriver-stable/alert-operator
-    version: 0.1.7
+    chart: georgedriver/alert-operator
+    version: 0.0.2
     namespace: system-monitoring
-    set:
-      - name: image.tag
-        value: master-bcd7409
 
   {{with (readFile "namespaces.values" | fromYaml)}}
   {{range .namespaces}}
   - name: alert-manager-receiver-{{.name}}
-    chart: georgedriver-stable/k8s-alert-receiver
-    version: 0.1.4
+    chart: georgedriver/k8s-alert-receiver
+    version: 0.0.1
     namespace: {{.name}}
     set:
       - name: target_configuration.name
