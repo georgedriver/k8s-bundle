@@ -1,0 +1,19 @@
+cluster:
+  provider: docker-for-mac
+  name: k8s-dev
+  codename: k8s-dev
+  domain: dev.local
+  environment: production
+  location: cn-shanghai
+  ingress_class: nginx
+  cluster_issuer: letsencrypt-prod
+
+ingress:
+  enabled: true
+
+vault:
+  enabled: true
+
+argocd:
+  # Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
+  enabled: true

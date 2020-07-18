@@ -1,13 +1,3 @@
 namespaces:
   - name:                      "sample"
-    owner:                     "george9012@hotmail.com"
-    team:                      "devops"
-    slack_channel:             "#home_alerts"
-    slack_webhook:             "https://hooks.slack.com/services/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"
-    # pagerduty_integration_key: "ee6198d99757ttsbb3129d653d240873"
-
   - name:                      "stable"
-    owner:                     "george9012@hotmail.com"
-    team:                      "stable"
-    slack_channel:             "#home_alerts"
-    slack_webhook:             "https://hooks.slack.com/services/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"
