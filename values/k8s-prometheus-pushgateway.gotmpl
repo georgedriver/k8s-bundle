@@ -18,10 +18,6 @@ ingress:
   enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
   annotations:
     kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
-    cert-manager.io/cluster-issuer: {{ .Environment.Values.cluster.cluster_issuer }}
   hosts:
   - pushgateway.{{ .Environment.Values.cluster.domain }}
   path: /
-  tls:
-  - hosts:
-    - pushgateway.{{ .Environment.Values.cluster.domain }}
