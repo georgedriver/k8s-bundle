@@ -5,8 +5,17 @@ installCRDs: false
 
 dex:
   enabled: false
+  env:
+{{ toYaml .Environment.Values.argocd.env | indent 2 }}
+
+repoServer:
+  env:
+{{ toYaml .Environment.Values.argocd.env | indent 2 }}
 
 server:
+  env:
+{{ toYaml .Environment.Values.argocd.env | indent 2 }}
+
   ingress:
     enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
     annotations:

@@ -23,7 +23,7 @@ helmDefaults:
   createNamespace: true
 
 releases:
-{{- if .Environment.Values | getOrNil "ingress.enabled" }}
+{{- if (and (.Environment.Values | getOrNil "ingress.enabled") (eq .Environment.Values.cluster.provider "docker-for-mac"))}}
   - name: nginx-ingress
     chart: georgedriver/nginx-ingress-docker-for-mac
     namespace: ingress-nginx

@@ -1,0 +1,43 @@
+cluster:
+  provider: nuc
+  name: k8s-nuc
+  codename: k8s-nuc
+  domain: mirana.cndriver.tech
+  environment: production
+  location: cn-shanghai
+  ingress_class: nginx
+  cluster_issuer: letsencrypt-prod
+
+ingress:
+  enabled: true
+
+cert_manager:
+  enabled: true
+
+alidns_webhook:
+  enabled: true
+  # access/secret key from alicloud to control the DNS services https://dns.console.aliyun.com
+  alicloud_access_key: {{ env "ALICLOUD_ACCESS_KEY" | default "not_set" }}
+  alicloud_secret_key: {{ env "ALICLOUD_SECRET_KEY" | default "not_set" }}
+  domain: cndriver.tech
+  email: george9012@hotmail.com
+
+vault:
+  enabled: true
+
+argocd:
+  # Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
+  enabled: true
+  git_url: https://github.com/georgedriver/argocd-services
+  git_user: {{ env "ARGO_GITHUB_USER" | default "not_set" }}
+  git_token: {{ env "ARGO_GITHUB_TOKEN" | default "not_set" }}
+  env:
+  - name: https_proxy
+    value: "http://192.168.88.6:7890"
+  - name: http_proxy
+    value: "http://192.168.88.6:7890"
+  - name: no_proxy
+    value: "clash-service,argocd-application-controller,argocd-dex-server,argocd-redis,argocd-repo-server,argocd-server,localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+
+prometheus_bundles:
+  enabled: true
