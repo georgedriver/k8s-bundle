@@ -1,7 +1,0 @@
-namespaces:
-  - name:                      "sample"
-    # slack_channel:           "<your_slack_channel>"
-    # slack_webhook:           "<https://your_slack_incoming_slack_webhook_for_the_channel>"
-  - name:                      "stable"
-    # slack_channel:           "<your_slack_channel>"
-    # slack_webhook:           "<https://your_slack_incoming_slack_webhook_for_the_channel>"
