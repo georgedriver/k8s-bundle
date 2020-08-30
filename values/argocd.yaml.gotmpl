@@ -17,6 +17,7 @@ repoServer:
 {{- end }}
 
 server:
+# Reset admin password `kubectl patch secret argocd-secret  -p '{"data": {"admin.password": null, "admin.passwordMtime": null}}'` and then restart the pod
 {{- if .Environment.Values | getOrNil "argocd.env" }}
   env:
 {{ toYaml .Environment.Values.argocd.env | indent 2 }}
