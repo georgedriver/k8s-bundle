@@ -3,3 +3,6 @@ ENV ?= dev
 
 install:
 	docker run -i --env-file .env -v ${PWD}:/code -v /Users/`whoami`/.kube/config:/root/.kube/config --rm $(HELM_IMAGE) /code/init-install.sh $(ENV)
+
+debug:
+	docker run -it --env-file .env -v ${PWD}:/code -v /Users/`whoami`/.kube/config:/root/.kube/config --rm $(HELM_IMAGE) bash

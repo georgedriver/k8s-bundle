@@ -12,8 +12,11 @@ ingress:
   enabled: true
 
 vault:
-  enabled: true
+  enabled: false
 
 argocd:
   # Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
   enabled: true
+
+prometheus_bundles:
+  enabled: flase

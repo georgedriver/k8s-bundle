@@ -5,8 +5,24 @@ installCRDs: false
 
 dex:
   enabled: false
+{{- if .Environment.Values | getOrNil "argocd.env" }}
+  env:
+{{ toYaml .Environment.Values.argocd.env | indent 2 }}
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "argocd.env" }}
+repoServer:
+  env:
+{{ toYaml .Environment.Values.argocd.env | indent 2 }}
+{{- end }}
 
 server:
+# Reset admin password `kubectl patch secret argocd-secret  -p '{"data": {"admin.password": null, "admin.passwordMtime": null}}'` and then restart the pod
+{{- if .Environment.Values | getOrNil "argocd.env" }}
+  env:
+{{ toYaml .Environment.Values.argocd.env | indent 2 }}
+{{- end }}
+
   ingress:
     enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
     annotations:

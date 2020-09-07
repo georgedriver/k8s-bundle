@@ -14,13 +14,16 @@ repositories:
     url: https://kubernetes-charts.banzaicloud.com
   - name: incubator
     url: https://kubernetes-charts-incubator.storage.googleapis.com
+  - name: stable
+    url: https://kubernetes-charts.storage.googleapis.com
 
 helmDefaults:
   wait: true
+  timeout: 1000
   createNamespace: true
 
 releases:
-{{- if .Environment.Values | getOrNil "ingress.enabled" }}
+{{- if (and (.Environment.Values | getOrNil "ingress.enabled") (eq .Environment.Values.cluster.provider "docker-for-mac"))}}
   - name: nginx-ingress
     chart: georgedriver/nginx-ingress-docker-for-mac
     namespace: ingress-nginx
@@ -30,7 +33,7 @@ releases:
 {{- if .Environment.Values | getOrNil "cert_manager.enabled" }}
   - name: cert-manager
     chart: jetstack/cert-manager
-    version: v0.15.1
+    version: v0.15.2
     namespace: cert-manager
     set:
       - name: installCRDs
@@ -96,4 +99,58 @@ releases:
       - ./values/argocd.yaml.gotmpl
     labels:
       depend_on_others: true
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "prometheus_bundles.enabled" }}
+  - name: k8s-prometheus-operator
+    chart: stable/prometheus-operator
+    version: 8.16.1
+    namespace: system-monitoring
+    values:
+      - ./values/k8s-prometheus-operator.yaml.gotmpl
+
+  - name: k8s-prometheus-pushgateway
+    chart: stable/prometheus-pushgateway
+    version: 1.4.1
+    namespace: system-monitoring
+    values:
+      - ./values/k8s-prometheus-pushgateway.gotmpl
+    labels:
+      depend_on_others: true
+
+  - name: alert-operator
+  # NOTE: Secret from spec targetd configuration is not found: Secret "alertmanager-k8s-prometheus-operator-alertmanager" not found
+    chart: georgedriver/alert-operator
+    version: 0.0.2
+    namespace: system-monitoring
+
+  {{with (readFile "namespaces.values" | fromYaml)}}
+  {{range .namespaces}}
+  - name: alert-manager-receiver-{{.name}}
+    chart: georgedriver/k8s-alert-receiver
+    version: 0.0.1
+    namespace: {{.name}}
+    set:
+      - name: target_configuration.name
+        value: alertmanager-k8s-prometheus-operator-alertmanager
+      - name: target_configuration.namespace
+        value: system-monitoring
+        {{- if (and (. | getOrNil "slack_channel") (. | getOrNil "slack_webhook"))}}
+      - name: slack.name
+        value: slack-receiver-{{.name}}
+      - name: slack.channel
+        value: '{{.slack_channel}}'
+      - name:  slack.webhook_url
+        value: {{.slack_webhook}}
+        {{- end}}
+        {{- if (. | getOrNil "pagerduty_integration_key")}}
+      - name: pagerduty.name
+        value: pagerduty-receiver-{{.name}}
+      - name: pagerduty.service_key
+        value: {{.pagerduty_integration_key}}
+        {{- end}}
+    labels:
+      depend_on_others: true
+  {{end}}
+  {{end}}
 {{- end }}

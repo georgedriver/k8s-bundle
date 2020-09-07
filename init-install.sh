@@ -62,7 +62,7 @@ for env in $(cat ./environments/$1.yaml.gotmpl | grep '{{ env' | awk -F'"' '{pri
     [ -z ${!env} ] && prompt $env
 done
 
-helmfile -e $1 --selector depend_on_others!=true apply
+helmfile -e $1 --selector depend_on_others!=true sync
 helmfile -e $1 --selector depend_on_others=true sync
 
 for ns in $(cat namespaces.values | grep "name:" | awk -F":" '{print $2}' | tr '"' ' '); do
