@@ -16,6 +16,8 @@ repositories:
     url: https://kubernetes-charts-incubator.storage.googleapis.com
   - name: stable
     url: https://kubernetes-charts.storage.googleapis.com
+  - name: elastic
+    url: https://helm.elastic.co
 
 helmDefaults:
   wait: true
@@ -76,6 +78,7 @@ releases:
   {{- if .Environment.Values | getOrNil "argocd.git_user" }}
   - name: argo-git-repo-secret
     chart: incubator/raw
+    version: 0.2.4
     namespace: argocd
     values:
     - templates:
@@ -153,4 +156,20 @@ releases:
       depend_on_others: true
   {{end}}
   {{end}}
+{{- end }}
+
+{{- if .Environment.Values | getOrNil "elk.enabled" }}
+  - name: elasticsearch
+    chart: elastic/elasticsearch
+    version: 7.10.1
+    namespace: logging
+    values:
+      - ./values/elasticsearch.yaml.gotmpl
+
+  - name: kibana
+    chart: elastic/kibana
+    version: 7.10.1
+    namespace: logging
+    values:
+      - ./values/kibana.yaml.gotmpl
 {{- end }}

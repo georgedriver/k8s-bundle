@@ -1,0 +1,15 @@
+---
+elasticsearchHosts: "http://elasticsearch-master:9200"
+
+ingress:
+  enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
+  # Used to create Ingress record (should used with service.type: ClusterIP).
+  hosts:
+   - kibana.{{ .Environment.Values.cluster.domain }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
+    cert-manager.io/cluster-issuer: {{ .Environment.Values.cluster.cluster_issuer }}
+  tls:
+  - hosts:
+    - kibana.{{ .Environment.Values.cluster.domain }}
+    secretName: kibana.{{ .Environment.Values.cluster.domain }}
