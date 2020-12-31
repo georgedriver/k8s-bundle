@@ -13,9 +13,9 @@ repositories:
   - name: banzaicloud
     url: https://kubernetes-charts.banzaicloud.com
   - name: incubator
-    url: https://kubernetes-charts-incubator.storage.googleapis.com
+    url: https://charts.helm.sh/incubator
   - name: stable
-    url: https://kubernetes-charts.storage.googleapis.com
+    url: https://charts.helm.sh/stable
   - name: elastic
     url: https://helm.elastic.co
 
@@ -96,7 +96,7 @@ releases:
 
   - name: argocd
     chart: argo/argo-cd
-    version: 2.3.6
+    version: 2.11.0
     namespace: argocd
     values:
       - ./values/argocd.yaml.gotmpl
