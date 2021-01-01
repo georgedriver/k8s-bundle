@@ -45,7 +45,11 @@ server:
     users.anonymous.enabled: "false"
 
 {{- if .Environment.Values | getOrNil "argocd.git_user" }}
+    # https://github.com/argoproj/argo-cd/blob/master/docs/faq.md#argo-cd-cannot-deploy-helm-chart-based-applications-without-internet-access-how-can-i-solve-it
     repositories: |
+      - type: helm
+        url: https://charts.helm.sh/stable
+        name: stable
       - url: {{ .Environment.Values.argocd.git_url }}
         passwordSecret:
           name: argo-git-repo-secret
