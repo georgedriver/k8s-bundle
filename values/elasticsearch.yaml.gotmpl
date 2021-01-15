@@ -30,3 +30,15 @@ volumeClaimTemplate:
   resources:
     requests:
       storage: 8Gi
+
+ingress:
+  enabled: {{ .Environment.Values | getOrNil "ingress.enabled" | default false }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
+    cert-manager.io/cluster-issuer: {{ .Environment.Values.cluster.cluster_issuer }}
+  hosts:
+  - es.{{ .Environment.Values.cluster.domain }}
+  tls:
+  - hosts:
+    - es.{{ .Environment.Values.cluster.domain }}
+    secretName: es.{{ .Environment.Values.cluster.domain }}
