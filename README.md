@@ -8,7 +8,9 @@ k8s is the Service Infrastructure Compute platform; this repo contains the files
 
 ## Usage
 
-`make install`
+Prepare .env
+
+`ENV=<dev|prod> make install`
 
 ## Contributing
 - Pull requests are welcome.

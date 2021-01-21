@@ -2,7 +2,7 @@ cluster:
   provider: nuc
   name: k8s-prod
   codename: k8s-prod
-  domain: cndriver.tech
+  domain: lazlaz.cn
   environment: production
   location: cn-shanghai
   ingress_class: nginx
@@ -19,7 +19,7 @@ alidns_webhook:
   # access/secret key from alicloud to control the DNS services https://dns.console.aliyun.com
   alicloud_access_key: {{ env "ALICLOUD_ACCESS_KEY" | default "not_set" }}
   alicloud_secret_key: {{ env "ALICLOUD_SECRET_KEY" | default "not_set" }}
-  domain: cndriver.tech
+  domain: lazlaz.cn
   email: george9012@hotmail.com
 
 vault:
