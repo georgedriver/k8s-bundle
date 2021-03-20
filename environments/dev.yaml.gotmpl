@@ -33,9 +33,9 @@ argocd:
   git_token: {{ env "ARGO_GITHUB_TOKEN" | default "not_set" }}
   env:
   - name: https_proxy
-    value: "http://192.168.88.6:7890"
+    value: "http://192.168.1.23:7890"
   - name: http_proxy
-    value: "http://192.168.88.6:7890"
+    value: "http://192.168.1.23:7890"
   - name: no_proxy
     value: "clash-service,argocd-application-controller,argocd-dex-server,argocd-redis,argocd-repo-server,argocd-server,localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
 
