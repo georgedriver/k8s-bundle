@@ -4,12 +4,12 @@ set -e
 
 usage() {
     cat <<EOF
-Usage: $0 <environment>
-Example: $0 <dev|prod>
+Usage: $0 <environment> <action>
+Example: $0 <dev|prod> <lint|diff|sync>
 EOF
 }
 
-if [[ $# != 1 ]]; then
+if [[ $# != 2 ]]; then
     usage
     exit 1
 fi
@@ -59,11 +59,28 @@ installed helmfile
 installed helm
 
 for env in $(cat ./environments/$1.yaml.gotmpl | grep '{{ env' | awk -F'"' '{print $2}'); do
-    [ -z ${!env} ] && prompt $env
+    [ -z ${!env} ] && ensure_set $env
 done
 
-helmfile -e $1 --selector depend_on_others!=true sync
-helmfile -e $1 --selector depend_on_others=true sync
+case "$2" in
+    lint)
+    echo "=== lint ===="
+    helmfile -e $1 lint
+    ;;
+    diff)
+    echo "=== diff ===="
+    helmfile -e $1 diff
+    ;;
+    sync)
+    echo "=== sync ===="
+    helmfile -e $1 --selector depend_on_others!=true sync
+    helmfile -e $1 --selector depend_on_others=true sync
+    ;;
+    *)
+    usage
+    exit 1
+    ;;
+esac
 
 for ns in $(cat namespaces.values | grep "name:" | awk -F":" '{print $2}' | tr '"' ' '); do
     kubectl create ns $ns || true
