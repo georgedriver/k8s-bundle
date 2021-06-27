@@ -62,6 +62,8 @@ for env in $(cat ./environments/$1.yaml.gotmpl | grep '{{ env' | awk -F'"' '{pri
     [ -z ${!env} ] && ensure_set $env
 done
 
+helmfile -e $1 deps
+
 case "$2" in
     lint)
     echo "=== lint ===="

@@ -37,8 +37,10 @@ ingress:
     kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
     cert-manager.io/cluster-issuer: {{ .Environment.Values.cluster.cluster_issuer }}
   hosts:
-  - es.{{ .Environment.Values.cluster.domain }}
+    - host: es.{{ .Environment.Values.cluster.domain }}
+      paths:
+        - path: /
   tls:
-  - hosts:
-    - es.{{ .Environment.Values.cluster.domain }}
-    secretName: es.{{ .Environment.Values.cluster.domain }}
+   - secretName: es.{{ .Environment.Values.cluster.domain }}
+     hosts:
+       - es.{{ .Environment.Values.cluster.domain }}

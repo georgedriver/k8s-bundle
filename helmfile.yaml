@@ -18,6 +18,8 @@ repositories:
     url: https://charts.helm.sh/stable
   - name: elastic
     url: https://helm.elastic.co
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
 
 helmDefaults:
   wait: true
@@ -35,7 +37,7 @@ releases:
 {{- if .Environment.Values | getOrNil "cert_manager.enabled" }}
   - name: cert-manager
     chart: jetstack/cert-manager
-    version: v0.15.2
+    version: v1.4.0
     namespace: cert-manager
     set:
       - name: installCRDs
@@ -106,15 +108,15 @@ releases:
 
 {{- if .Environment.Values | getOrNil "prometheus_bundles.enabled" }}
   - name: k8s-prometheus-operator
-    chart: stable/prometheus-operator
-    version: 8.16.1
+    chart: prometheus-community/kube-prometheus-stack
+    version: 16.12.0
     namespace: system-monitoring
     values:
       - ./values/k8s-prometheus-operator.yaml.gotmpl
 
   - name: k8s-prometheus-pushgateway
-    chart: stable/prometheus-pushgateway
-    version: 1.4.1
+    chart: prometheus-community/prometheus-pushgateway
+    version: 1.10.0
     namespace: system-monitoring
     values:
       - ./values/k8s-prometheus-pushgateway.gotmpl
@@ -131,7 +133,7 @@ releases:
   {{range .namespaces}}
   - name: alert-manager-receiver-{{.name}}
     chart: georgedriver/k8s-alert-receiver
-    version: 0.0.1
+    version: 0.0.3
     namespace: {{.name}}
     set:
       - name: target_configuration.name
@@ -161,14 +163,14 @@ releases:
 {{- if .Environment.Values | getOrNil "elk.enabled" }}
   - name: elasticsearch
     chart: elastic/elasticsearch
-    version: 7.10.1
+    version: 7.13.2
     namespace: logging
     values:
       - ./values/elasticsearch.yaml.gotmpl
 
   - name: kibana
     chart: elastic/kibana
-    version: 7.10.1
+    version: 7.13.2
     namespace: logging
     values:
       - ./values/kibana.yaml.gotmpl
