@@ -65,10 +65,10 @@ server:
       source:
         repoURL: {{ .Environment.Values.argocd.git_url }}
         targetRevision: HEAD
-        path: "app-of-apps"
+        path: {{ .Environment.Values.argocd.value_file_path }}
         helm:
           valueFiles:
-            - "values-{{ .Environment.Values.cluster.codename }}.yaml"
+            - {{ .Environment.Values.argocd.value_file_name }}
       destination:
           server: https://kubernetes.default.svc
           namespace: argocd
