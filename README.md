@@ -10,7 +10,7 @@ k8s is the Service Infrastructure Compute platform; this repo contains the files
 
 Prepare .env
 
-`ENV=<dev|prod> make install`
+`make <lint|diff|sync>`
 
 ## Contributing
 - Pull requests are welcome.

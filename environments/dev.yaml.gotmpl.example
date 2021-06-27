@@ -1,0 +1,38 @@
+cluster:
+  provider: microk8s
+  codename: k8s-dev
+  domain: dev.{{ requiredEnv "ALICLOUD_MANAGED_DOMAIN" }}
+  environment: dev
+  location: cn-shanghai
+  ingress_class: nginx
+  cluster_issuer: letsencrypt-prod
+
+ingress:
+  enabled: true
+
+cert_manager:
+  enabled: true
+
+alidns_webhook:
+  enabled: true
+  # access/secret key from alicloud to control the DNS services https://dns.console.aliyun.com
+  alicloud_access_key: {{ requiredEnv "ALICLOUD_ACCESS_KEY" }}
+  alicloud_secret_key: {{ requiredEnv "ALICLOUD_SECRET_KEY" }}
+  domain: {{ requiredEnv "ALICLOUD_MANAGED_DOMAIN" }}
+  email: {{ requiredEnv "ALICLOUD_ACCOUNT_EMAIL" }}
+
+vault:
+  enabled: true
+
+argocd:
+  # Reset admin password: https://github.com/argoproj/argo-cd/issues/998#issuecomment-452908058
+  enabled: true
+  git_url: https://github.com/georgedriver/argocd-services
+  git_user: {{ requiredEnv "ARGO_GITHUB_USER" }}
+  git_token: {{ requiredEnv "ARGO_GITHUB_TOKEN" }}
+
+prometheus_bundles:
+  enabled: true
+
+elk:
+  enabled: true

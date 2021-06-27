@@ -68,7 +68,7 @@ server:
         path: "app-of-apps"
         helm:
           valueFiles:
-            - "values-{{ .Environment.Values.cluster.name }}.yaml"
+            - "values-{{ .Environment.Values.cluster.codename }}.yaml"
       destination:
           server: https://kubernetes.default.svc
           namespace: argocd
