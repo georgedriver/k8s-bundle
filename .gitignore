@@ -1,3 +1,5 @@
 .env
 *.gotmpl
 *.lock
+*.env.dev
+*.env.prod
