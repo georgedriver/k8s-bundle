@@ -98,7 +98,7 @@ releases:
 
   - name: argocd
     chart: argo/argo-cd
-    version: 2.11.0
+    version: 3.21.0
     namespace: argocd
     values:
       - ./values/argocd.yaml.gotmpl
