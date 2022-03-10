@@ -27,6 +27,24 @@ prometheus:
     externalUrl: http://prometheus.{{ .Environment.Values.cluster.domain }}
     externalLabels:
       cluster: "{{ $cluster_name }}"
+    ## Prometheus StorageSpec for persistent data
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/storage.md
+    ##
+    storageSpec:
+    ## Using PersistentVolumeClaim
+    ##
+      volumeClaimTemplate:
+        spec:
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: k8s-prometheus-operator-pv
+          storageClassName: manual
+          volumeName: k8s-prometheus-operator-pv
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ .Environment.Values.prometheus_bundles.storage }}
 
 alertmanager:
   ingress:

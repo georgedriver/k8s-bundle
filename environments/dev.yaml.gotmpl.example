@@ -36,6 +36,8 @@ argocd:
 
 prometheus_bundles:
   enabled: true
+  hostPath: /tmp/k8s-prometheus-operator-pv
+  storage: 2Gi
 
 elk:
   enabled: true
