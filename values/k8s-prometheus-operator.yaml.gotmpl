@@ -17,6 +17,7 @@ prometheus:
     annotations:
       kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
   prometheusSpec:
+    retention: 365d
     serviceMonitorSelectorNilUsesHelmValues: "false"
     serviceMonitorSelector:
       matchLabels:
@@ -27,6 +28,24 @@ prometheus:
     externalUrl: http://prometheus.{{ .Environment.Values.cluster.domain }}
     externalLabels:
       cluster: "{{ $cluster_name }}"
+    ## Prometheus StorageSpec for persistent data
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/storage.md
+    ##
+    storageSpec:
+    ## Using PersistentVolumeClaim
+    ##
+      volumeClaimTemplate:
+        spec:
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: k8s-prometheus-operator-pv
+          storageClassName: manual
+          volumeName: k8s-prometheus-operator-pv
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ .Environment.Values.prometheus_bundles.storage }}
 
 alertmanager:
   ingress:
@@ -37,22 +56,62 @@ alertmanager:
   alertmanagerSpec:
     externalUrl: http://alertmanager.{{ .Environment.Values.cluster.domain }}
   templateFiles:
-    slack_notification.tmpl: |
-      {{ printf "{{ define \"__single_message_title\" }}{{ range .Alerts.Firing }}*{{ .Labels.alertname }}* {{ if .Annotations.summary }} @ {{ .Annotations.summary }}{{ end }}{{ end }}{{ range .Alerts.Resolved }}*{{ .Labels.alertname }}* {{ if .Annotations.summary }} @ {{ .Annotations.summary }}{{ end }}{{ end }}{{ end }} {{ define \"custom_title\" }}[{{ .Status | toUpper }}{{ if eq .Status \"firing\" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ if or (and (eq (len .Alerts.Firing) 1) (eq (len .Alerts.Resolved) 0)) (and (eq (len .Alerts.Firing) 0) (eq (len .Alerts.Resolved) 1)) }}{{ template \"__single_message_title\" . }}{{ end }}{{ end }} {{ define \"custom_slack_message\" }} {{ if or (and (eq (len .Alerts.Firing) 1) (eq (len .Alerts.Resolved) 0)) (and (eq (len .Alerts.Firing) 0) (eq (len .Alerts.Resolved) 1)) }} * %s Alert Firing:* {{ range .Alerts.Firing }}{{printf \"\\n•\" }}{{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }} {{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }} {{ end }} {{ if gt (len .Alerts.Resolved) 0 }} * %s Alert Resolved:*  {{ range .Alerts.Resolved }} {{printf \"\\n•\" }} {{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }}{{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }}{{ end }}{{ end }} {{ else }} {{ if gt (len .Alerts.Firing) 0 }} * %s Alerts Firing:* {{ range .Alerts.Firing }} {{printf \"\\n•\" }} *{{ .Labels.alertname }}* {{ if .Annotations.summary }} @ {{ .Annotations.summary }}{{ end }}: {{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }} {{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }} {{ end }}{{ end }} {{ if gt (len .Alerts.Resolved) 0 }} * %s Alerts Resolved:* {{ range .Alerts.Resolved }}{{printf \"\\n•\" }} *{{ .Labels.alertname }}* {{ if .Annotations.summary }}@ {{ .Annotations.summary }}{{ end }}: {{ if .Annotations.description }} {{ .Annotations.description }} {{ else if .Annotations.message }} {{ .Annotations.message }} {{ else }} \"\" {{ end }} {{ if .Annotations.runbook_url }} See runbook here: {{ .Annotations.runbook_url }} {{ end }} {{ end }}{{ end }} {{ end }} {{ end }}" $cluster_name $cluster_name $cluster_name $cluster_name }}
+    slack_notification.tmpl: |-
+        {{`{{ define "cluster" }}{{ .ExternalURL | reReplaceAll ".*alertmanager\\.(.*)" "$1" }}{{ end }}
+
+        {{ define "slack.myorg.title" }}
+            [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.alertname }} - Cluster: {{ template "cluster" . }}
+        {{ end }}
+
+        {{ define "slack.myorg.text" }}
+        {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          {{ if .Labels.severity }} *Severity:* {{ .Labels.severity }}{{ end }}
+          {{ if .Annotations.description }} *Description:* {{ .Annotations.description }}{{ end }}
+          {{ if .Annotations.dashboard_url }} *Graph:* {{ .Annotations.dashboard_url }}{{ end }}
+          {{ if .Annotations.runbook_url }} *Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          {{ if .Labels.team }}*Team:* {{ .Labels.team }}{{ end }}
+          *Details:*
+            {{ range .Labels.SortedPairs }} - *{{ .Name }}:* *{{ .Value }}*
+            {{ end }}
+        {{ end }}
+        {{ end }}`}}
+
   config:
     global:
       resolve_timeout: 5m
-    route:
-      group_by: ['job']
-      group_wait: 30s
-      group_interval: 5m
-      repeat_interval: 12h
-      routes: []
-      receiver: 'null'
-    receivers:
-    - name: 'null'
     templates:
-      - /etc/alertmanager/config/slack_notification.tmpl
+      - '/etc/alertmanager/config/*.tmpl'
+    route:
+      receiver: default
+      group_by: ["alertname"]
+      repeat_interval: 4h
+      routes:
+        - match:
+            alertname: Watchdog
+          receiver: default
+        - match:
+            alertname: InfoInhibitor
+          receiver: "null"
+        - match_re:
+            team: infra
+          receiver: default
+    receivers:
+      - name: default
+        slack_configs:
+          - send_resolved: true
+            channel: "{{ .Environment.Values.prometheus_bundles.default_slack_channel }}"
+            api_url: {{ .Environment.Values.prometheus_bundles.default_slack_api_url }}
+            icon_url: https://avatars3.githubusercontent.com/u/3380462
+            title: '{{`{{ template "slack.myorg.title" . }}`}}'
+            text: '{{`{{ template "slack.myorg.text" . }}`}}'
+      - name: 'null'
+    inhibit_rules:
+      - source_match:
+          alertname: InfoInhibitor
+        target_match:
+          severity: info
+        equal: ["namespace"]
 
 grafana:
   enabled: false

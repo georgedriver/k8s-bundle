@@ -4,8 +4,9 @@ cluster:
   domain: dev.{{ requiredEnv "ALICLOUD_MANAGED_DOMAIN" }}
   environment: dev
   location: cn-shanghai
-  ingress_class: nginx
+  ingress_class: public
   cluster_issuer: letsencrypt-prod
+  master_ip: 192.168.8.22
 
 ingress:
   enabled: true
@@ -36,6 +37,10 @@ argocd:
 
 prometheus_bundles:
   enabled: true
+  hostPath: /tmp/k8s-prometheus-operator-pv
+  storage: 2Gi
+  default_slack_api_url: {{ requiredEnv "DEFAULT_SLACK_API_URL" }}
+  default_slack_channel: "#general"
 
 elk:
   enabled: true

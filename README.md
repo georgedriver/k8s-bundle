@@ -15,3 +15,7 @@ Prepare .env
 ## Contributing
 - Pull requests are welcome.
 - For major changes, please open an issue first to discuss the changes you like to have.
+
+## Changelogs
+
+- 2022/3/25: Upgrade to work with cluster version v1.21
