@@ -158,43 +158,6 @@ releases:
       depend_on_others: true
   {{- end }}
 
-#   - name: alert-operator
-#   # NOTE: Secret from spec targetd configuration is not found: Secret "alertmanager-k8s-prometheus-operator-alertmanager" not found
-#     chart: georgedriver/alert-operator
-#     version: 0.0.2
-#     namespace: system-monitoring
-
-#   {{with (readFile "namespaces.values" | fromYaml)}}
-#   {{range .namespaces}}
-#   - name: alert-manager-receiver-{{.name}}
-#     chart: georgedriver/k8s-alert-receiver
-#     version: 0.0.3
-#     namespace: {{.name}}
-#     set:
-#       - name: target_configuration.name
-#         value: alertmanager-k8s-prometheus-operator-alertmanager
-#       - name: target_configuration.namespace
-#         value: system-monitoring
-#         {{- if (and (. | getOrNil "slack_channel") (. | getOrNil "slack_webhook"))}}
-#       - name: slack.name
-#         value: slack-receiver-{{.name}}
-#       - name: slack.channel
-#         value: '{{.slack_channel}}'
-#       - name:  slack.webhook_url
-#         value: {{.slack_webhook}}
-#         {{- end}}
-#         {{- if (. | getOrNil "pagerduty_integration_key")}}
-#       - name: pagerduty.name
-#         value: pagerduty-receiver-{{.name}}
-#       - name: pagerduty.service_key
-#         value: {{.pagerduty_integration_key}}
-#         {{- end}}
-#     labels:
-#       depend_on_others: true
-#   {{end}}
-#   {{end}}
-# {{- end }}
-
 {{- if .Environment.Values | getOrNil "elk.enabled" }}
   - name: elasticsearch
     chart: elastic/elasticsearch
