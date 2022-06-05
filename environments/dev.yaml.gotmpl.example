@@ -4,9 +4,9 @@ cluster:
   domain: dev.{{ requiredEnv "ALICLOUD_MANAGED_DOMAIN" }}
   environment: dev
   location: cn-shanghai
-  ingress_class: nginx
+  ingress_class: public
   cluster_issuer: letsencrypt-prod
-  master_ip: 192.168.1.22
+  master_ip: 192.168.8.22
 
 ingress:
   enabled: true

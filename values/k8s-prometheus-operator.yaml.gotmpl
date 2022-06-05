@@ -17,6 +17,7 @@ prometheus:
     annotations:
       kubernetes.io/ingress.class: {{ .Environment.Values.cluster.ingress_class }}
   prometheusSpec:
+    retention: 365d
     serviceMonitorSelectorNilUsesHelmValues: "false"
     serviceMonitorSelector:
       matchLabels:
