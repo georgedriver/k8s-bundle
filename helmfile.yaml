@@ -157,6 +157,7 @@ releases:
     labels:
       depend_on_others: true
   {{- end }}
+{{- end }}
 
 {{- if .Environment.Values | getOrNil "elk.enabled" }}
   - name: elasticsearch
